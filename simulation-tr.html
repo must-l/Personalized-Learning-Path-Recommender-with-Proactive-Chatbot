@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototip Simülasyon: Kişiselleştirilmiş Öğrenme Yolu & Proaktif Chatbot (Cumhuriyet Tarihi)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.5em; margin-top: 30px;}
+        h3 { font-size: 1.2em; border-bottom: none; }
+        .step {
+            border-left: 3px solid #3498db;
+            padding-left: 20px;
+            margin-bottom: 25px;
+        }
+        .code-box {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: "Courier New", Courier, monospace;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #ecf0f1;
+            color: #34495e;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            text-align: center;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .button:hover { background-color: #2980b9; }
+        .path-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .path {
+            flex: 1;
+            min-width: 260px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #fafafa;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .path.visible { opacity: 1; transform: translateY(0); }
+        .path h3 { margin-top: 0; }
+        .scores-box {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .scores-box span.label { font-weight: 600; color: #2c3e50; }
+        .result-box {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        .best-path { border-color: #27ae60; box-shadow: 0 0 10px rgba(39,174,96,0.2); }
+        .best-path .result-box { background-color: #e8f8ef; color: #27ae60; }
+        .other-path .result-box { background-color: #fbeeee; color: #c0392b; }
+        #final-result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e8f8ef;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+        }
+
+        /* CHATBOT / HCI */
+        #chatbot-section { display: none; margin-top: 30px; }
+        .chat-wrapper {
+            position: relative;
+            background-color: #eaf5fd;
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 90%;
+            margin-top: 20px;
+            border: 1px solid #a8d4f6;
+        }
+        .chat-wrapper::before {
+            content: '🤖 Proaktif Eğitmen';
+            position: absolute; top: -20px; left: 10px;
+            font-size: 0.8em; font-weight: bold; color: #2980b9;
+        }
+        .chat-text { font-size: 0.95em; color: #2c3e50; line-height: 1.5; }
+
+        .support-response {
+            display: none;
+            background-color: #ffffff;
+            border: 1px solid #c9dff5;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-top: 15px;
+            font-size: 0.85em;
+            color: #2c3e50;
+        }
+        .support-response code, .support-response blockquote {
+            background-color: #f5f8ff;
+            border: 1px solid #dbe6ff;
+            border-radius: 4px;
+            font-size: 0.9em;
+            padding: 6px 8px;
+            display: block;
+        }
+        .privacy-line {
+            font-size: 0.75em; color: #6b6b6b; margin-top: 12px;
+            border-top: 1px solid #c9dff5; padding-top: 8px;
+        }
+
+        .quick-replies { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .chip-btn {
+            background-color: #fff; border: 1px solid #3498db; color: #3498db;
+            border-radius: 20px; padding: 8px 14px; font-size: 0.8em; font-weight: 500; cursor: pointer;
+        }
+        .chip-btn:hover { background-color: #3498db; color: #fff; }
+        .chip-btn:focus { outline: 2px solid #1b6fa5; outline-offset: 2px; }
+
+        /* MİKRO ANKET */
+        #survey-section { display: none; margin-top: 30px; border: 1px solid #ddd; border-radius: 8px; background-color: #fcfcfc; padding: 20px; }
+        #survey-section h2 { border-bottom: 2px solid #3498db; }
+        .survey-item { margin-bottom: 15px; font-size: 0.9em; }
+        .likert-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.8em; }
+        .likert-row label { display: flex; align-items: center; gap: 4px; }
+        .likert-row input { cursor: pointer; }
+        .survey-submit-wrapper { margin-top: 20px; }
+        .submit-btn {
+            background-color: #27ae60; color: #fff; border: none; border-radius: 5px;
+            padding: 10px 16px; font-size: 0.9em; cursor: pointer;
+        }
+        .submit-btn:hover { background-color: #1f8c4d; }
+        #survey-thanks {
+            display: none; margin-top: 15px; font-size: 0.85em;
+            background-color: #e8f8ef; color: #27ae60; border: 1px solid #27ae60; border-radius: 6px; padding: 10px 12px;
+        }
+
+        .access-note { font-size: 0.8em; color: #777; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- BAŞLIK / BAĞLAM -->
+    <div class="container">
+        <h1>Prototip Simülasyon: Kişiselleştirilmiş Öğrenme Yolu & Proaktif Chatbot (Cumhuriyet Tarihi)</h1>
+        <p>
+            Bu prototip, belirli bir öğrenci profili için en uygun öğrenme yolunu öneren bir sistemin,
+            öğrencinin zorlandığını algıladığında proaktif ve empatik destek sunmasını gösterir.
+            Senaryo, <strong>Ayşe</strong>’nin <strong>Cumhuriyet Tarihi</strong> dersinde
+            “Cumhuriyet’in ilanı ve erken dönem reformları (1923–1938)” konusuna başlamasını izler.
+        </p>
+        <p class="access-note">
+            Erişilebilirlik notu: Arayüz, net etiketler, kademeli gösterim ve isteğe bağlı yardım seçenekleriyle
+            bilişsel yükü azaltacak şekilde tasarlanmıştır (WCAG ve HCI ilkeleriyle uyumlu).
+        </p>
+    </div>
+
+    <!-- AŞAMA 1 -->
+    <div class="container">
+        <h2>Aşama 1: Öğrenci Profili ve İçerik Havuzu</h2>
+        <div class="step">
+            <p><strong>Senaryo:</strong> Sistem, Ayşe’nin mevcut durumunu modeller ve konuyu nasıl çalışması gerektiğine dair öneride bulunur. Amaç, <em>pedagojik olarak en uygun</em> yolu seçmektir (ne çok zor, ne çok yavaş; demotive etmeyen).</p>
+            
+            <h3>Tablo 1. Öğrenci Profili (Ayşe)</h3>
+            <table aria-label="Öğrenci profili tablosu">
+                <tr><th>Özellik</th><th>Değer</th><th>Açıklama</th></tr>
+                <tr>
+                    <td>Ön Bilgi Düzeyi</td>
+                    <td>Orta</td>
+                    <td>Önceki ünitede (%75) başarı sağladı.</td>
+                </tr>
+                <tr>
+                    <td>Öğrenme Hızı</td>
+                    <td>Yavaş</td>
+                    <td>Etkinlikleri sınıf ortalamasından ~%20 daha yavaş tamamlıyor.</td>
+                </tr>
+                <tr>
+                    <td>Bilişsel Yük Eşiği</td>
+                    <td>Orta</td>
+                    <td>Arka arkaya iki yüksek zorluklu görevde performans düşüyor.</td>
+                </tr>
+            </table>
+
+            <h3>Tablo 2. “Cumhuriyet Tarihi” İçerikleri</h3>
+            <table aria-label="Öğrenme materyalleri tablosu">
+                <tr>
+                    <th>ID</th><th>Materyal Türü</th><th>Zorluk</th><th>Ort. Süre (dk)</th>
+                </tr>
+                <tr><td>M1</td><td>Belgesel Video</td><td>Kolay</td><td>10</td></tr>
+                <tr><td>M2</td><td>Birincil Kaynak Analizi (metin)</td><td>Orta</td><td>20</td></tr>
+                <tr><td>M3</td><td>İnteraktif Zaman Çizelgesi</td><td>Orta</td><td>15</td></tr>
+                <tr><td>M4</td><td>Kısa Test (5 Soru)</td><td>Zor</td><td>15</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- AŞAMA 2/3 OPTİMİZASYON -->
+    <div class="container">
+        <h2>Aşama 2 &amp; 3: Çok Amaçlı Optimizasyon (GA vs SSA)</h2>
+        <div class="step">
+            <p>Sistem birden fazla aday öğrenme yolu üretir. Her yol, şu dört hedefi dengeleyen bir uygunluk fonksiyonuyla puanlanır:</p>
+            <div class="code-box">
+                f(P) = α · Öğrenme Kazancı (G) + β · Motivasyon (M)
+                     − γ · Süre (T) − δ · Bilişsel Yük (L)
+            </div>
+            <p style="font-size:0.9em; color:#555;">
+                Karşılaştırılan sezgisel optimizasyonlar:
+                <strong>Genetik Algoritma (GA)</strong> — yüksek kazanç/motivasyonu gözetir, biraz zorlamayı tolere eder;
+                <strong>Salp Sürüsü Algoritması (SSA)</strong> — daha düşük süre ve bilişsel yükle sakin bir tempoyu önceler.
+            </p>
+
+            <button class="button" onclick="runSimulation()" aria-label="Kişiselleştirilmiş öğrenme yolu simülasyonunu çalıştır">
+                Simülasyonu Çalıştır
+            </button>
+            
+            <div class="path-container" id="path-container" aria-live="polite"></div>
+
+            <div id="final-result">
+                <h3>Algoritmalara Göre Önerilen Yollar</h3>
+                <p id="result-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AŞAMA 4 CHATBOT -->
+    <div class="container" id="chatbot-section">
+        <h2>Aşama 4: Proaktif, Empati Odaklı Chatbot Etkileşimi</h2>
+        <div class="step">
+            <p>
+                Ayşe önerilen yolu izlerken <strong>M2: Birincil Kaynak Analizi</strong> adımında beklenenden uzun zaman harcar ve üst üste üç kez hatalı çıkarım yapar.
+                Sistem bu zorlanmayı bir xAPI olayıyla kaydeder ve beklemeden destek mesajı gönderir.
+            </p>
+
+            <div class="code-box">
+{
+  "actor": { "name": "Ayşe", "mbox": "mailto:ayse@sakarya.edu.tr" },
+  "verb": { "id": "http://adlnet.gov/expapi/verbs/failed", "display": { "tr-TR": "başarısız oldu" } },
+  "object": { "id": "http://.../M2_Kaynak_Analizi", "definition": { "name": { "tr-TR": "Birincil Kaynak Analizi" } } },
+  "context": { "extensions": { "http://.../attempt_count": 3,
+                               "http://.../time_spent_seconds": 420 } }
+}
+            </div>
+
+            <div class="chat-wrapper" role="alert" aria-live="assertive">
+                <div class="chat-text">
+                    Merhaba Ayşe — bu adım birçok öğrenci için zorlu olabilir; zorlanman <em>çok normal</em>.  
+                    Birkaç kez denediğini gördüm, bu çaban değerli. 💪  
+                    Devam etmeden önce, sana en iyi gelecek destek türünü birlikte seçelim mi?<br><br>
+
+                    Seçenek A: Adım adım ipucu ile birlikte ilerleyelim.<br>
+                    Seçenek B: Benzer bir örnek analizi gösterip deseni vurgulayayım.<br>
+                    Seçenek C: Önce bir kez daha tek başıma denemek istiyorum; sadece küçük bir ipucu ver.
+                    <br><br>
+                    Sonrasında en çok hangi kısımda takıldığını birlikte belirleyebiliriz: bağlam, ana iddia, kanıt, ya da önyargı/yanlılık analizi.
+                </div>
+
+                <div class="quick-replies" aria-label="Tercih ettiğiniz yardım türünü seçin">
+                    <button class="chip-btn" id="btn-hint" aria-label="Adım adım ipucu iste">
+                        Adım Adım İpucu
+                    </button>
+                    <button class="chip-btn" id="btn-example" aria-label="Benzer örnek göster">
+                        Benzer Örnek Göster
+                    </button>
+                    <button class="chip-btn" id="btn-alone" aria-label="Önce kendim deneyeyim">
+                        Önce Kendim Deneyeyim
+                    </button>
+                </div>
+
+                <div class="support-response" id="support-response-box"></div>
+
+                <div class="privacy-line">
+                    Etkinlik verilerin bu ders ortamı içinde tutulur. İstediğin zaman çalışma geçmişinin silinmesini talep edebilirsin.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MİKRO ANKET -->
+    <div class="container" id="survey-section">
+        <h2>Oturum Sonu Değerlendirme &amp; Kullanılabilirlik</h2>
+        <div class="step">
+            <p>Üç kısa soru: algılanan açıklık, yargılanmadan desteklenme ve bir sonraki adımı bilme.</p>
+
+            <div class="survey-item">
+                <strong>1. Yönlendirme net ve izlemesi kolaydı.</strong>
+                <div class="likert-row">
+                    <label><input type="radio" name="q1" value="1">1</label>
+                    <label><input type="radio" name="q1" value="2">2</label>
+                    <label><input type="radio" name="q1" value="3">3</label>
+                    <label><input type="radio" name="q1" value="4">4</label>
+                    <label><input type="radio" name="q1" value="5">5</label>
+                </div>
+            </div>
+
+            <div class="survey-item">
+                <strong>2. Bu görevde çalışırken desteklenmiş, yargılanmamış hissettim.</strong>
+                <div class="likert-row">
+                    <label><input type="radio" name="q2" value="1">1</label>
+                    <label><input type="radio" name="q2" value="2">2</label>
+                    <label><input type="radio" name="q2" value="3">3</label>
+                    <label><input type="radio" name="q2" value="4">4</label>
+                    <label><input type="radio" name="q2" value="5">5</label>
+                </div>
+            </div>
+
+            <div class="survey-item">
+                <strong>3. Gelişmek için sıradaki adımı biliyorum.</strong>
+                <div class="likert-row">
+                    <label><input type="radio" name="q3" value="1">1</label>
+                    <label><input type="radio" name="q3" value="2">2</label>
+                    <label><input type="radio" name="q3" value="3">3</label>
+                    <label><input type="radio" name="q3" value="4">4</label>
+                    <label><input type="radio" name="q3" value="5">5</label>
+                </div>
+            </div>
+
+            <div class="survey-submit-wrapper">
+                <button class="submit-btn" id="survey-submit" aria-label="Anketi gönder">
+                    Gönder
+                </button>
+                <div id="survey-thanks">
+                    Teşekkürler. Yanıtların kaydedildi.
+                </div>
+            </div>
+
+            <p class="access-note">
+                Bu algısal sinyaller; görev süresi, ipucu talepleri ve yeniden deneme sayısı gibi davranışsal verilerle birlikte,
+                ham sohbet içeriği saklanmadan analiz edilebilir.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        /*********************** VERİ MODELİ ************************/
+        const pathsData = [
+            {
+                id: 1,
+                name: "Aday Yol 1",
+                sequence: "M1 (Belgesel) → M2 (Kaynak Analizi) → M4 (Kısa Test)",
+                metrics: { lg: 0.85, eng: 0.75, time: 0.65, cl: 0.80 },
+                explanation: "Analizin hemen ardından zor bir teste geçmek bazı öğrencilerde bilişsel yükte ani artışa yol açabilir."
+            },
+            {
+                id: 2,
+                name: "Aday Yol 2",
+                sequence: "M1 (Belgesel) → M3 (Zaman Çizelgesi) → M2 (Kaynak Analizi)",
+                metrics: { lg: 0.90, eng: 0.90, time: 0.55, cl: 0.40 },
+                explanation: "Önce kısa bir belgeselle kavramlar çerçevelenir; etkileşimli zaman çizelgesiyle kronoloji pekişir; ardından metin analiziyle derinleşilir."
+            },
+            {
+                id: 3,
+                name: "Aday Yol 3",
+                sequence: "M4 (Kısa Test) → M1 (Belgesel) → M2 (Kaynak Analizi)",
+                metrics: { lg: 0.50, eng: 0.40, time: 0.70, cl: 0.90 },
+                explanation: "Zor bir testle başlamak motivasyonu düşürüp bilişsel yükü erken artırabilir."
+            }
+        ];
+
+        /******************* PUANLAMA FONKSİYONLARI ******************/
+        function calculateScoreGA(m) {
+            // GA: öğrenme kazancı + motivasyonu daha güçlü ödüller, süre/yük cezaları nispeten hafif
+            // 0.5*lg + 0.3*eng - 0.1*time - 0.1*cl
+            const s = (0.5*m.lg) + (0.3*m.eng) - (0.1*m.time) - (0.1*m.cl);
+            return s.toFixed(3);
+        }
+        function calculateScoreSSA(m) {
+            // SSA: düşük süre ve düşük bilişsel yük öncelikli, daha sakin tempo
+            // 0.4*lg + 0.2*eng - 0.2*time - 0.2*cl
+            const s = (0.4*m.lg) + (0.2*m.eng) - (0.2*m.time) - (0.2*m.cl);
+            return s.toFixed(3);
+        }
+
+        /*********** HIZLI CEVAP SONRASI DESTEK İÇERİĞİ *************/
+        function showSupportContent(type) {
+            const box = document.getElementById("support-response-box");
+            if (!box) return;
+
+            if (type === "hint") {
+                box.innerHTML = `
+                    <strong>Adım Adım İpucu:</strong><br>
+                    1) <em>Kim / Ne zaman / Nerede?</em> Temel bağlamı çıkar.<br>
+                    2) Metnin <em>ana iddiasını</em> bir cümlede özetle.<br>
+                    3) İddianın dayandığı <em>kanıt</em> cümlelerini alıntıla.<br>
+                    4) <em>Önyargı/yanlılık</em> ve yazarın konumunu değerlendir.<br>
+                    5) Bulduklarını dönemin reformlarıyla ilişkilendir (ör. harf devrimi, hukuk/ eğitim düzenlemeleri).<br><br>
+                    İpucu: Bağlamı bulmadan yargıya varma.
+                `;
+            } else if (type === "example") {
+                box.innerHTML = `
+                    <strong>Benzer Örnek Analizi:</strong>
+                    <blockquote>
+                        “... yeni harflerin kabulüyle okuryazarlık hamlesi hızlanmış, eğitim seferberliği toplumun geniş kesimlerine yayılmıştır ...”
+                    </blockquote>
+                    <ul>
+                        <li><b>Ana iddia:</b> Harf devrimi, okuryazarlığı artırdı.</li>
+                        <li><b>Kanıt:</b> “okuryazarlık hamlesi hızlanmış” ifadesi.</li>
+                        <li><b>Bağlam:</b> 1928 reformları ve takip eden eğitim politikaları.</li>
+                        <li><b>Olası yanlılık:</b> Devlet politikalarını olumlayan dil.</li>
+                    </ul>
+                    Şimdi metnindeki benzer unsurları işaretle: iddia, kanıt, bağlam, yanlılık.
+                `;
+            } else if (type === "alone") {
+                box.innerHTML = `
+                    <strong>Tamam — kontrol sende. 🔎</strong><br>
+                    Bir deneme daha yap. Mikro ipucu: Önce ana iddiayı tek cümle yaz; sonra sadece metinden alıntıyla destekle.<br><br>
+                    Yardım istemedikçe sessiz kalacağım. Başarabilirsin!
+                `;
+            } else {
+                box.innerHTML = "";
+            }
+            box.style.display = "block";
+        }
+
+        /**************** ANA SİMÜLASYON RUTİNİ *********************/
+        window.runSimulation = function () {
+            const container = document.getElementById('path-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let bestPathGA = null, bestGA = -Infinity;
+            let bestPathSSA = null, bestSSA = -Infinity;
+
+            pathsData.forEach((p, idx) => {
+                const sGA = parseFloat(calculateScoreGA(p.metrics));
+                const sSSA = parseFloat(calculateScoreSSA(p.metrics));
+                if (sGA > bestGA) { bestGA = sGA; bestPathGA = p; }
+                if (sSSA > bestSSA) { bestSSA = sSSA; bestPathSSA = p; }
+
+                const div = document.createElement('div');
+                div.className = 'path';
+                div.innerHTML = `
+                    <h3>${p.name}</h3>
+                    <p><strong>Sıralama:</strong> ${p.sequence}</p>
+                    <p><strong>Tahmini Göstergeler:</strong></p>
+                    <ul>
+                        <li>Öğrenme Kazancı (G): ${p.metrics.lg}</li>
+                        <li>Motivasyon (M): ${p.metrics.eng}</li>
+                        <li>Süre (T): ${p.metrics.time}</li>
+                        <li>Bilişsel Yük (L): ${p.metrics.cl}</li>
+                    </ul>
+                    <div class="scores-box">
+                        <div><span class="label">GA Uygunluk Skoru:</span> <span id="ga-${p.id}">…</span></div>
+                        <div><span class="label">SSA Uygunluk Skoru:</span> <span id="ssa-${p.id}">…</span></div>
+                    </div>
+                    <p style="font-size:0.9em; color:#555;"><i>${p.explanation}</i></p>
+                    <div class="result-box" id="result-${p.id}">Durum hesaplanıyor…</div>
+                `;
+                container.appendChild(div);
+
+                setTimeout(() => { div.classList.add('visible'); }, idx * 200);
+                setTimeout(() => {
+                    const gaSpan = document.getElementById(`ga-${p.id}`);
+                    const ssaSpan = document.getElementById(`ssa-${p.id}`);
+                    if (gaSpan) gaSpan.textContent = sGA.toFixed(3);
+                    if (ssaSpan) ssaSpan.textContent = sSSA.toFixed(3);
+                }, 600 + (idx * 200));
+            });
+
+            setTimeout(() => {
+                pathsData.forEach(p => {
+                    const box = document.getElementById(`result-${p.id}`);
+                    if (!box) return;
+                    const parent = box.parentElement;
+                    const isBestGA = bestPathGA && p.id === bestPathGA.id;
+                    const isBestSSA = bestPathSSA && p.id === bestPathSSA.id;
+
+                    if (isBestGA || isBestSSA) {
+                        parent.classList.add('best-path');
+                        parent.classList.remove('other-path');
+                        const labels = [];
+                        if (isBestGA) labels.push(`GA (${bestGA.toFixed(3)})`);
+                        if (isBestSSA) labels.push(`SSA (${bestSSA.toFixed(3)})`);
+                        box.textContent = `Önerildi: ${labels.join(" ve ")}.`;
+                    } else {
+                        parent.classList.add('other-path');
+                        parent.classList.remove('best-path');
+                        box.textContent = "Bu profil için üst sırada değil.";
+                    }
+                });
+
+                const finalDiv = document.getElementById('final-result');
+                const resultText = document.getElementById('result-text');
+                const gaHTML = bestPathGA ? `<strong>GA</strong> <em>${bestPathGA.name}</em> yolunu ${bestGA.toFixed(3)} skorla tercih ediyor; yüksek kazanç/motivasyon için bir miktar zorlanmayı tolere eder.<br><br>` : "";
+                const ssaHTML = bestPathSSA ? `<strong>SSA</strong> <em>${bestPathSSA.name}</em> yolunu ${bestSSA.toFixed(3)} skorla tercih ediyor; düşük süre ve yükle sakin tempoyu önceler.<br><br>` : "";
+                resultText.innerHTML = gaHTML + ssaHTML + `<strong>Pedagojik yorum:</strong> Farklı çözücüler farklı öğretim tercihlerini kodlar: keşif/ meydan okuma (GA) vs. istikrar/tempo (SSA).`;
+                finalDiv.style.display = 'block';
+
+                // Chatbot ve anketi göster
+                document.getElementById('chatbot-section').style.display = 'block';
+                document.getElementById('survey-section').style.display = 'block';
+
+                // Hızlı cevap düğmeleri
+                const btnHint = document.getElementById("btn-hint");
+                const btnExample = document.getElementById("btn-example");
+                const btnAlone = document.getElementById("btn-alone");
+                if (btnHint) btnHint.addEventListener("click", () => showSupportContent("hint"));
+                if (btnExample) btnExample.addEventListener("click", () => showSupportContent("example"));
+                if (btnAlone) btnAlone.addEventListener("click", () => showSupportContent("alone"));
+
+                // Anket gönder
+                const submitBtn = document.getElementById("survey-submit");
+                const thanksBox = document.getElementById("survey-thanks");
+                if (submitBtn && thanksBox) {
+                    submitBtn.addEventListener("click", () => { thanksBox.style.display = "block"; });
+                }
+            }, 1500);
+        };
+    </script>
+</body>
+</html>
