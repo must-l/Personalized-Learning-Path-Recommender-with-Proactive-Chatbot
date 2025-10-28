@@ -296,7 +296,7 @@
     <div class="container">
         <h1>Prototype Implementation: Personalized Learning Path Recommender with Proactive Chatbot</h1>
         <p>
-            This prototype demonstrates how an AI-driven personalized learning system can generate an optimized learning path for a specific learner profile and then deliver proactive, empathetic support based on real-time struggle signals. The scenario follows a hypothetical student, <strong>AyÅŸe</strong>, beginning the topic of <strong>Loops</strong> in an "Introduction to Programming" course.
+            This prototype demonstrates how an AI-driven personalized learning system can generate an optimized learning path for a specific learner profile and then deliver proactive, empathetic support based on real-time struggle signals. The scenario follows a hypothetical student, <strong>Ayse</strong>, beginning the topic of <strong>Loops</strong> in an "Introduction to Programming" course.
         </p>
         <p class="access-note">
             Accessibility note: Interface elements use clear labels, progressive disclosure, and optional assistance choices
@@ -308,9 +308,9 @@
     <div class="container">
         <h2>Stage 1: Learner Profile and Content Pool</h2>
         <div class="step">
-            <p><strong>Scenario:</strong> The system models AyÅŸe's current state before recommending how she should study loops. The goal is to pick not just any path, but the <em>most instructionally appropriate</em> path for her needs (not too hard, not too slow, not demotivating).</p>
+            <p><strong>Scenario:</strong> The system models Ayse's current state before recommending how she should study loops. The goal is to pick not just any path, but the <em>most instructionally appropriate</em> path for her needs (not too hard, not too slow, not demotivating).</p>
             
-            <h3>Table 1. Student Profile (AyÅŸe)</h3>
+            <h3>Table 1. Student Profile (Ayse)</h3>
             <table aria-label="Student profile data table">
                 <tr><th>Feature</th><th>Value</th><th>Description</th></tr>
                 <tr>
@@ -383,15 +383,15 @@
         <h2>Stage 4: Proactive, Empathy-Aware Tutor Interaction</h2>
         <div class="step">
             <p>
-                While following the recommended path, AyÅŸe reaches <strong>M2: Guided Coding Exercise</strong>.
+                While following the recommended path, Ayse reaches <strong>M2: Guided Coding Exercise</strong>.
                 She spends longer than expected and fails three attempts in a row.
                 The system logs an xAPI event describing this struggle and triggers a proactive support messageâ€”
-                without waiting for AyÅŸe to ask for help.
+                without waiting for Ayse to ask for help.
             </p>
 
             <div class="code-box">
 {
-  "actor": { "name": "AyÅŸe", "mbox": "mailto:ayse@sakarya.edu.tr" },
+  "actor": { "name": "Ayse", "mbox": "mailto:ayse@sakarya.edu.tr" },
   "verb": { "id": "http://adlnet.gov/expapi/verbs/failed", "display": { "en-US": "failed" } },
   "object": { "id": "http://.../M2_Coding_Exercise", "definition": { "name": { "en-US": "For Loop Exercise" } } },
   "context": { "extensions": { "http://.../attempt_count": 3,
@@ -401,7 +401,7 @@
 
             <div class="chat-wrapper" role="alert" aria-live="assertive">
                 <div class="chat-text">
-                    Hi AyÅŸe â€” this step is tricky for many students, so struggling here is completely normal.  
+                    Hi Ayse â€” this step is tricky for many students, so struggling here is completely normal.  
                     I noticed you've tried a few times, which shows real effort. ðŸ’ª  
                     Before we continue, would you like support in a way that works best for you?<br><br>
 
@@ -444,7 +444,7 @@
         <h2>Session Reflection &amp; Usability Check</h2>
         <div class="step">
             <p>
-                At the end of the session, AyÅŸe is asked three short questions. These reflect perceived clarity,
+                At the end of the session, Ayse is asked three short questions. These reflect perceived clarity,
                 psychological safety (feeling supported, not judged), and next-step confidence.
             </p>
 
